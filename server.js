@@ -17,6 +17,10 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// ── Health check (Railway probes this to confirm readiness) ───────────────────
+
+app.get('/healthz', (_req, res) => res.json({ ok: true }));
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function isoNow() {
@@ -864,34 +868,16 @@ app.get('/dashboard', (req, res) => {
   });
 });
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
+// ── Boot — called by index.js after all modules are loaded ───────────────────
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log('[startup] Server listening on port', PORT);
-  console.log(`[server] Endpoints:`);
-  console.log(`          GET   /`);
-  console.log(`          GET   /api/dashboard`);
-  console.log(`          POST  /api/tasks`);
-  console.log(`          GET   /api/books`);
-  console.log(`          PATCH /api/books/:id`);
-  console.log(`          GET   /api/ideas`);
-  console.log(`          GET   /api/constraints`);
-  console.log(`          POST  /api/constraints`);
-  console.log(`          PATCH /api/constraints/:id`);
-  console.log(`          POST  /api/constraints/:id/complete`);
-  console.log(`          GET   /api/builds`);
-  console.log(`          POST  /api/builds`);
-  console.log(`          PATCH /api/builds/:id`);
-  console.log(`          POST  /api/contacts`);
-  console.log(`          PATCH /api/events/:id/attend`);
-  console.log(`          GET   /api/content-ideas`);
-  console.log(`          POST  /webhook/reply`);
-  console.log(`          GET   /dashboard  (legacy json)`);
-});
+function start() {
+  return new Promise((resolve, reject) => {
+    const srv = app.listen(PORT, '0.0.0.0', () => {
+      console.log('[startup] Server listening on port', PORT);
+      resolve(srv);
+    });
+    srv.on('error', reject);
+  });
+}
 
-server.on('error', (err) => {
-  console.error('[server] Failed to bind:', err.message);
-  process.exit(1);
-});
-
-module.exports = app;
+module.exports = { app, start };

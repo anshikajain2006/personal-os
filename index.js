@@ -88,51 +88,61 @@ if (runNowJob) {
 
 // ── Normal startup ────────────────────────────────────────────────────────────
 } else {
-  require('./server');
+  process.on('SIGTERM', () => {
+    console.log('[index] SIGTERM received — shutting down gracefully');
+    process.exit(0);
+  });
 
-  // ── Night brief — 9:00 PM IST ─────────────────────────────────────────────
-  cron.schedule('0 21 * * *', () => {
-    console.log('[index] Cron fired: night-brief');
-    safeRun('night-brief', nightBrief);
-  }, { timezone: 'Asia/Kolkata' });
+  const { start } = require('./server');
 
-  // ── Morning plan — 7:00 AM IST ────────────────────────────────────────────
-  cron.schedule('0 7 * * *', () => {
-    console.log('[index] Cron fired: morning-plan');
-    safeRun('morning-plan', morningPlan);
-  }, { timezone: 'Asia/Kolkata' });
+  start()
+    .then(() => {
+      // ── Night brief — 9:00 PM IST ───────────────────────────────────────
+      cron.schedule('0 21 * * *', () => {
+        console.log('[index] Cron fired: night-brief');
+        safeRun('night-brief', nightBrief);
+      }, { timezone: 'Asia/Kolkata' });
 
-  // ── Weekly review — every Friday 8:00 PM IST ──────────────────────────────
-  // On the last Friday of the month the monthly audit also runs.
-  cron.schedule('0 20 * * 5', () => {
-    console.log('[index] Cron fired: weekly-review');
-    safeRun('weekly-review', sendWeeklyReview);
+      // ── Morning plan — 7:00 AM IST ──────────────────────────────────────
+      cron.schedule('0 7 * * *', () => {
+        console.log('[index] Cron fired: morning-plan');
+        safeRun('morning-plan', morningPlan);
+      }, { timezone: 'Asia/Kolkata' });
 
-    if (isLastFridayOfMonth()) {
-      console.log('[index] Cron fired: monthly-audit (last Friday of month)');
-      safeRun('monthly-audit', sendMonthlyAudit);
-    }
-  }, { timezone: 'Asia/Kolkata' });
+      // ── Weekly review — every Friday 8:00 PM IST ────────────────────────
+      cron.schedule('0 20 * * 5', () => {
+        console.log('[index] Cron fired: weekly-review');
+        safeRun('weekly-review', sendWeeklyReview);
 
-  // ── Saturday morning — 9:00 AM IST ───────────────────────────────────────
-  // Combined: build ideas (if no build logged) + content ideas (if none for next week).
-  cron.schedule('0 9 * * 6', () => {
-    console.log('[index] Cron fired: saturday-morning');
-    safeRun('saturday-morning', runSaturdayMorningJob);
-  }, { timezone: 'Asia/Kolkata' });
+        if (isLastFridayOfMonth()) {
+          console.log('[index] Cron fired: monthly-audit (last Friday of month)');
+          safeRun('monthly-audit', sendMonthlyAudit);
+        }
+      }, { timezone: 'Asia/Kolkata' });
 
-  // ── Startup summary ───────────────────────────────────────────────────────
-  const nextNight    = fmtIST(nextRunIST(21, 0));
-  const nextMorning  = fmtIST(nextRunIST(7, 0));
-  const nextFriday   = fmtIST(nextRunIST(20, 0, 5));
-  const nextSaturday = fmtIST(nextRunIST(8, 0, 6));
+      // ── Saturday morning — 9:00 AM IST ──────────────────────────────────
+      cron.schedule('0 9 * * 6', () => {
+        console.log('[index] Cron fired: saturday-morning');
+        safeRun('saturday-morning', runSaturdayMorningJob);
+      }, { timezone: 'Asia/Kolkata' });
 
-  console.log('[index] Scheduled jobs:');
-  console.log(`  night-brief     → daily        21:00 IST  next: ${nextNight}`);
-  console.log(`  morning-plan    → daily         7:00 IST  next: ${nextMorning}`);
-  console.log(`  weekly-review   → every Fri    20:00 IST  next: ${nextFriday}`);
-  console.log(`  monthly-audit   → last Fri     20:00 IST  next: (piggybacks weekly-review)`);
-  console.log(`  saturday-morning → every Sat    9:00 IST  next: ${nextSaturday} (builds + content combined)`);
+      // ── Startup summary ──────────────────────────────────────────────────
+      const nextNight    = fmtIST(nextRunIST(21, 0));
+      const nextMorning  = fmtIST(nextRunIST(7, 0));
+      const nextFriday   = fmtIST(nextRunIST(20, 0, 5));
+      const nextSaturday = fmtIST(nextRunIST(8, 0, 6));
+
+      console.log('[index] Scheduled jobs:');
+      console.log(`  night-brief      → daily       21:00 IST  next: ${nextNight}`);
+      console.log(`  morning-plan     → daily        7:00 IST  next: ${nextMorning}`);
+      console.log(`  weekly-review    → every Fri   20:00 IST  next: ${nextFriday}`);
+      console.log(`  monthly-audit    → last Fri    20:00 IST  next: (piggybacks weekly-review)`);
+      console.log(`  saturday-morning → every Sat    9:00 IST  next: ${nextSaturday}`);
+    })
+    .catch(err => {
+      console.error('[startup] Server failed to start:', err.message);
+      process.exit(1);
+    });
 }
 
 } catch (err) {

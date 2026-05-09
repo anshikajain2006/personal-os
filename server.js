@@ -867,27 +867,32 @@ app.get('/dashboard', (req, res) => {
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`[server] Running on http://localhost:${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log('[startup] Server listening on port', PORT);
   console.log(`[server] Endpoints:`);
-  console.log(`          GET   http://localhost:${PORT}/`);
-  console.log(`          GET   http://localhost:${PORT}/api/dashboard`);
-  console.log(`          POST  http://localhost:${PORT}/api/tasks`);
-  console.log(`          GET   http://localhost:${PORT}/api/books`);
-  console.log(`          PATCH http://localhost:${PORT}/api/books/:id`);
-  console.log(`          GET   http://localhost:${PORT}/api/ideas`);
-  console.log(`          GET   http://localhost:${PORT}/api/constraints`);
-  console.log(`          POST  http://localhost:${PORT}/api/constraints`);
-  console.log(`          PATCH http://localhost:${PORT}/api/constraints/:id`);
-  console.log(`          POST  http://localhost:${PORT}/api/constraints/:id/complete`);
-  console.log(`          GET   http://localhost:${PORT}/api/builds`);
-  console.log(`          POST  http://localhost:${PORT}/api/builds`);
-  console.log(`          PATCH http://localhost:${PORT}/api/builds/:id`);
-  console.log(`          POST  http://localhost:${PORT}/api/contacts`);
-  console.log(`          PATCH http://localhost:${PORT}/api/events/:id/attend`);
-  console.log(`          GET   http://localhost:${PORT}/api/content-ideas`);
-  console.log(`          POST  http://localhost:${PORT}/webhook/reply`);
-  console.log(`          GET   http://localhost:${PORT}/dashboard  (legacy json)`);
+  console.log(`          GET   /`);
+  console.log(`          GET   /api/dashboard`);
+  console.log(`          POST  /api/tasks`);
+  console.log(`          GET   /api/books`);
+  console.log(`          PATCH /api/books/:id`);
+  console.log(`          GET   /api/ideas`);
+  console.log(`          GET   /api/constraints`);
+  console.log(`          POST  /api/constraints`);
+  console.log(`          PATCH /api/constraints/:id`);
+  console.log(`          POST  /api/constraints/:id/complete`);
+  console.log(`          GET   /api/builds`);
+  console.log(`          POST  /api/builds`);
+  console.log(`          PATCH /api/builds/:id`);
+  console.log(`          POST  /api/contacts`);
+  console.log(`          PATCH /api/events/:id/attend`);
+  console.log(`          GET   /api/content-ideas`);
+  console.log(`          POST  /webhook/reply`);
+  console.log(`          GET   /dashboard  (legacy json)`);
+});
+
+server.on('error', (err) => {
+  console.error('[server] Failed to bind:', err.message);
+  process.exit(1);
 });
 
 module.exports = app;

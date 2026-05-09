@@ -1,6 +1,6 @@
 'use strict';
 
-require('dotenv').config();
+require('dotenv').config({ path: '.env.example' });
 const cron = require('node-cron');
 
 const { nightBrief }                            = require('./nightBrief');

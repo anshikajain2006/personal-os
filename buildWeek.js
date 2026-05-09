@@ -1,6 +1,6 @@
 'use strict';
 
-require('dotenv').config();
+require('dotenv').config({ path: '.env.example' });
 const Anthropic = require('@anthropic-ai/sdk');
 const db        = require('./db');
 const { getCurrentBuildWeek } = require('./db');

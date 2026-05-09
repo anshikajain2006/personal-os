@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(node -e ' *)",
+      "Skill(claude-api)",
+      "Bash(node _test_weekly.js)",
+      "Bash(node _test_migration.js)",
+      "Bash(node _test_monthly.js)",
+      "Bash(node _test_server.js)",
+      "Bash(node index.js --run-now invalid-job)",
+      "Bash(PORT=3098 timeout 4 node index.js)",
+      "Bash(python3 -c ' *)",
+      "Bash(powershell *)",
+      "Bash(node --check buildWeek.js)",
+      "Bash(node --check db.js)",
+      "Bash(node --check index.js)",
+      "Bash(node --check server.js)",
+      "Bash(node --check nightBrief.js)",
+      "Bash(node --check weeklyReview.js)",
+      "Bash(node --check monthlyAudit.js)",
+      "Bash(node --check morningPlan.js)",
+      "Bash(sqlite3 \"C:\\\\Users\\\\HP\\\\OneDrive\\\\Desktop\\\\Personal\\\\personal_os.db\" \"SELECT name FROM projects ORDER BY priority_rank;\")",
+      "Bash(gh auth *)",
+      "Bash(git --version)",
+      "Bash(curl --version)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git config *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(node index.js --run-now night-brief)"
+    ]
+  }
+}

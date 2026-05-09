@@ -31,13 +31,9 @@ All emails are dark-mode HTML with a terminal aesthetic. Every email embeds a re
 npm install
 ```
 
-### 2. Create `.env`
+### 2. Fill in `.env.example`
 
-```bash
-cp .env.example .env
-```
-
-Fill in:
+Open `.env.example` and replace the placeholder values directly:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...

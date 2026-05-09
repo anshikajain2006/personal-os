@@ -2,12 +2,16 @@
 
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs   = require('fs');
 
 // DB_PATH env var lets Railway (or any host) point the DB at a persistent volume.
 // Fallback: same directory as this file (works locally).
 const DB_PATH = process.env.DB_PATH
   ? path.resolve(process.env.DB_PATH)
   : path.join(__dirname, 'personal_os.db');
+
+const dir = path.dirname(DB_PATH);
+if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
 console.log(`[db] Opening database at: ${DB_PATH}`);
 const db = new Database(DB_PATH);

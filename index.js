@@ -1,5 +1,9 @@
 'use strict';
 
+console.log('[startup] beginning...');
+
+try {
+
 require('dotenv').config({ path: '.env.example' });
 const cron = require('node-cron');
 
@@ -127,4 +131,10 @@ if (runNowJob) {
   console.log(`  weekly-review   → every Fri    20:00 IST  next: ${nextFriday}`);
   console.log(`  monthly-audit   → last Fri     20:00 IST  next: (piggybacks weekly-review)`);
   console.log(`  saturday-morning → every Sat    9:00 IST  next: ${nextSaturday} (builds + content combined)`);
+}
+
+} catch (err) {
+  console.error('[startup] FATAL ERROR:', err.message);
+  console.error(err.stack);
+  process.exit(1);
 }

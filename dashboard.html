@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Personal OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #090909;
+      --surf:     #101010;
+      --surf2:    #141414;
+      --border:   #1e1e1e;
+      --border2:  #2a2a2a;
+      --text:     #c8c8c8;
+      --dim:      #4a4a4a;
+      --dim2:     #707070;
+      --green:    #3dba6f;
+      --green-hi: #4dcc80;
+      --amber:    #e3b341;
+      --red:      #e05252;
+      --blue:     #58a6ff;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      background: var(--surf);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-text {
+      color: var(--green-hi);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 3px;
+    }
+
+    .logo-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--green);
+      animation: blink 1.1s step-end infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    .header-date {
+      color: var(--dim2);
+      font-size: 12px;
+    }
+
+    .btn-refresh {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--dim2);
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .btn-refresh:hover { color: var(--green-hi); border-color: var(--green); }
+    .btn-refresh.spin { animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 20px 24px 40px;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Panel ────────────────────────────────────────────────── */
+    .panel {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      padding: 16px 18px;
+    }
+
+    .panel-title {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dim2);
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Section label ────────────────────────────────────────── */
+    .sec-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dim2);
+      margin-bottom: 12px;
+    }
+
+    /* ── Today log ────────────────────────────────────────────── */
+    .log-date {
+      font-size: 11px;
+      color: var(--dim2);
+      margin-bottom: 14px;
+    }
+
+    .log-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .log-item:last-child { border-bottom: none; }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-on  { background: var(--green); box-shadow: 0 0 5px var(--green); }
+    .dot-off { background: var(--dim); }
+
+    .log-label {
+      color: var(--dim2);
+      flex: 1;
+      font-size: 12px;
+    }
+
+    .log-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Tags ─────────────────────────────────────────────────── */
+    .tag {
+      font-size: 10px;
+      padding: 2px 8px;
+      letter-spacing: 0.5px;
+    }
+    .tag-g { color: var(--green);  background: rgba(61,186,111,.1);  border: 1px solid rgba(61,186,111,.2);  }
+    .tag-a { color: var(--amber);  background: rgba(227,179,65,.1);  border: 1px solid rgba(227,179,65,.2);  }
+    .tag-r { color: var(--red);    background: rgba(224,82,82,.1);   border: 1px solid rgba(224,82,82,.2);   }
+    .tag-d { color: var(--dim2);   background: rgba(100,100,100,.07); border: 1px solid var(--border2); }
+
+    /* ── Scheduled ────────────────────────────────────────────── */
+    .sched-item {
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .sched-item:last-child { border-bottom: none; }
+
+    .sched-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+
+    .sched-name { font-size: 12px; color: var(--text); }
+
+    .sched-when {
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .when-imminent { color: var(--amber); }
+    .when-today    { color: var(--amber); opacity: 0.7; }
+    .when-far      { color: var(--dim2); }
+
+    .sched-sub {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sched-cron { font-size: 10px; color: var(--dim); }
+
+    /* ── Projects grid ────────────────────────────────────────── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      padding: 14px 15px;
+      transition: border-color 0.15s;
+    }
+    .card:hover { border-color: var(--border2); }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 11px;
+      gap: 8px;
+    }
+
+    .card-left { flex: 1; min-width: 0; }
+
+    .card-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .card-score {
+      font-size: 16px;
+      font-weight: 600;
+      text-align: right;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .card-score small { font-size: 10px; color: var(--dim); font-weight: 400; }
+    .score-g { color: var(--green-hi); }
+    .score-a { color: var(--amber); }
+    .score-r { color: var(--red); }
+    .score-n { color: var(--dim); font-size: 14px; }
+
+    /* Progress */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 3px;
+      background: var(--border2);
+      overflow: hidden;
+    }
+
+    .progress-fill { height: 100%; transition: width 0.4s; }
+    .fill-g { background: var(--green); }
+    .fill-a { background: var(--amber); }
+    .fill-r { background: var(--red); }
+
+    .progress-pct {
+      font-size: 11px;
+      color: var(--dim2);
+      min-width: 30px;
+      text-align: right;
+    }
+
+    /* Stats */
+    .card-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    .stat-val { color: var(--dim2); }
+    .stat-warn .stat-val { color: var(--amber); }
+    .stat-danger .stat-val { color: var(--red); }
+
+    /* Status badge */
+    .badge {
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      margin-bottom: 5px;
+      display: inline-block;
+    }
+    .badge-active    { color: var(--green);  border: 1px solid rgba(61,186,111,.25);  background: rgba(61,186,111,.06); }
+    .badge-paused    { color: var(--amber);  border: 1px solid rgba(227,179,65,.25);  background: rgba(227,179,65,.06); }
+    .badge-completed { color: var(--blue);   border: 1px solid rgba(88,166,255,.25);  background: rgba(88,166,255,.06); }
+    .badge-archived  { color: var(--dim2);   border: 1px solid var(--border2);        background: transparent; }
+
+    /* ── Add task form ────────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr 150px 160px;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+
+    .field label {
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    .field input, .field select {
+      background: var(--surf2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 12px;
+      padding: 7px 10px;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .field input::placeholder { color: var(--dim); }
+
+    .field input:focus, .field select:focus {
+      border-color: var(--green);
+    }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+
+    .field select option { background: #1a1a1a; }
+
+    .form-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .btn-add {
+      background: rgba(61,186,111,.08);
+      border: 1px solid rgba(61,186,111,.3);
+      color: var(--green-hi);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      padding: 7px 18px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-add:hover { background: rgba(61,186,111,.15); border-color: var(--green); }
+
+    #form-msg { font-size: 11px; color: var(--dim2); }
+    #form-msg.err { color: var(--red); }
+    #form-msg.ok  { color: var(--green); }
+
+    /* ── Toast ────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      padding: 9px 16px;
+      font-size: 12px;
+      background: var(--surf);
+      border: 1px solid var(--border2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 999;
+    }
+    #toast.show-ok  { opacity: 1; border-color: rgba(61,186,111,.4); color: var(--green); }
+    #toast.show-err { opacity: 1; border-color: rgba(224,82,82,.4);  color: var(--red); }
+
+    /* ── Skeleton / empty states ──────────────────────────────── */
+    .empty { color: var(--dim); padding: 12px 0; }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 860px) {
+      .row-2       { grid-template-columns: 1fr; }
+      .form-grid   { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .container   { padding: 14px; }
+      .form-grid   { grid-template-columns: 1fr; }
+      .header-date { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-text">▶ PERSONAL OS</span>
+    <span class="logo-cursor"></span>
+  </div>
+  <span class="header-date" id="hdr-date"></span>
+  <button class="btn-refresh" id="btn-refresh" onclick="loadAll()">↺ refresh</button>
+</header>
+
+<div class="container">
+
+  <!-- Status row -->
+  <div class="row-2" style="margin-top:4px;">
+
+    <div class="panel">
+      <div class="panel-title">Today's log</div>
+      <div id="today-content"><div class="empty">loading…</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Scheduled jobs</div>
+      <div id="sched-content"><div class="empty">loading…</div></div>
+    </div>
+
+  </div>
+
+  <!-- Projects -->
+  <div class="sec-label">Projects</div>
+  <div class="projects-grid" id="projects-grid">
+    <div class="empty">loading…</div>
+  </div>
+
+  <!-- Add task -->
+  <div class="panel">
+    <div class="panel-title">Add task</div>
+    <form onsubmit="submitTask(event)">
+      <div class="form-grid">
+        <div class="field">
+          <label for="f-project">Project</label>
+          <select id="f-project">
+            <option value="">— unassigned —</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-title">Title</label>
+          <input id="f-title" type="text" placeholder="task description…" required autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="f-priority">Priority</label>
+          <select id="f-priority">
+            <option value="low">1 — low</option>
+            <option value="medium" selected>2 — medium</option>
+            <option value="high">3 — high</option>
+            <option value="critical">4 — critical</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-deadline">Deadline</label>
+          <input id="f-deadline" type="date">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-add" type="submit">+ add task</button>
+        <span id="form-msg"></span>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+
+let _scheduled = null; // cached for countdown ticks without re-fetching
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+
+function timeUntil(iso) {
+  const ms = new Date(iso) - Date.now();
+  if (ms <= 0) return 'now';
+  const totalMin = Math.floor(ms / 60_000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h >= 48) { const d = Math.floor(h / 24); return `in ${d}d ${h % 24}h`; }
+  if (h >= 1)  return `in ${h}h ${m}m`;
+  return `in ${m}m`;
+}
+
+function whenClass(iso) {
+  const h = (new Date(iso) - Date.now()) / 3_600_000;
+  if (h < 2)  return 'when-imminent';
+  if (h < 12) return 'when-today';
+  return 'when-far';
+}
+
+function scoreInfo(s) {
+  if (s == null) return { cls: 'score-n', str: '—' };
+  const cls = s >= 7 ? 'score-g' : s >= 4 ? 'score-a' : 'score-r';
+  return { cls, str: `${s}<small>/10</small>` };
+}
+
+function fillClass(pct) {
+  return pct >= 60 ? 'fill-g' : pct >= 30 ? 'fill-a' : 'fill-r';
+}
+
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = type === 'ok' ? 'show-ok' : 'show-err';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+// ── Fetch ─────────────────────────────────────────────────────────────────────
+
+async function loadAll() {
+  const btn = document.getElementById('btn-refresh');
+  btn.classList.add('spin');
+  try {
+    const r = await fetch('/api/dashboard');
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    _scheduled = d.scheduled;
+    renderTodayLog(d.today_log);
+    renderScheduled(d.scheduled);
+    renderProjects(d.projects);
+    populateDropdown(d.projects);
+  } catch (err) {
+    toast('load failed: ' + err.message, 'err');
+  } finally {
+    btn.classList.remove('spin');
+  }
+}
+
+// ── Renderers ─────────────────────────────────────────────────────────────────
+
+function renderTodayLog(log) {
+  function row(label, sent, replied) {
+    const tags = sent
+      ? `<span class="tag tag-g">sent</span>${replied ? ' <span class="tag tag-a">replied ✓</span>' : ' <span class="tag tag-d">awaiting reply</span>'}`
+      : `<span class="tag tag-d">not sent</span>`;
+    return `
+      <div class="log-item">
+        <span class="dot ${sent ? 'dot-on' : 'dot-off'}"></span>
+        <span class="log-label">${label}</span>
+        <span class="log-tags">${tags}</span>
+      </div>`;
+  }
+
+  document.getElementById('today-content').innerHTML =
+    `<div class="log-date">${log.date}</div>` +
+    row('night brief',  log.night_brief_sent,  log.replied_night) +
+    row('morning plan', log.morning_plan_sent, log.replied_morning);
+}
+
+function renderScheduled(sched) {
+  const items = [
+    { key: 'night_brief',   label: 'night-brief'   },
+    { key: 'morning_plan',  label: 'morning-plan'  },
+    { key: 'weekly_review', label: 'weekly-review' },
+    { key: 'monthly_audit', label: 'monthly-audit' },
+  ];
+
+  const html = items.map(({ key, label }) => {
+    const s    = sched[key];
+    const wCls = whenClass(s.next);
+    const sentTag = s.sent_today
+      ? '<span class="tag tag-g" style="font-size:9px;">sent</span>'
+      : '';
+    return `
+      <div class="sched-item">
+        <div class="sched-main">
+          <span class="sched-name">${label}</span>
+          <span class="sched-when ${wCls}">${timeUntil(s.next)}</span>
+        </div>
+        <div class="sched-sub">
+          <span class="sched-cron">${s.cron}</span>
+          ${sentTag}
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('sched-content').innerHTML = html;
+}
+
+function renderProjects(projects) {
+  if (!projects?.length) {
+    document.getElementById('projects-grid').innerHTML = '<div class="empty">no projects</div>';
+    return;
+  }
+
+  const cards = projects.map(p => {
+    const pct  = p.completion_pct;
+    const si   = scoreInfo(p.score);
+
+    const warnings = [
+      p.blocked > 0 ? `<span class="stat stat-warn"><span class="stat-val">${p.blocked}</span> blocked</span>` : '',
+      p.overdue > 0 ? `<span class="stat stat-danger"><span class="stat-val">${p.overdue}</span> overdue</span>` : '',
+    ].filter(Boolean).join('');
+
+    return `
+      <div class="card">
+        <div class="card-top">
+          <div class="card-left">
+            <span class="badge badge-${p.status}">${p.status}</span>
+            <div class="card-name" title="${p.name}">${p.name}</div>
+          </div>
+          <div class="card-score ${si.cls}">${si.str}</div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-track">
+            <div class="progress-fill ${fillClass(pct)}" style="width:${pct}%"></div>
+          </div>
+          <span class="progress-pct">${pct}%</span>
+        </div>
+        <div class="card-stats">
+          <span class="stat"><span class="stat-val">${p.total_tasks}</span> total</span>
+          <span class="stat"><span class="stat-val">${p.done_tasks}</span> done</span>
+          <span class="stat"><span class="stat-val">${p.in_progress}</span> active</span>
+          ${warnings}
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('projects-grid').innerHTML = cards;
+}
+
+function populateDropdown(projects) {
+  const sel = document.getElementById('f-project');
+  const cur = sel.value;
+  while (sel.options.length > 1) sel.remove(1);
+  (projects || [])
+    .filter(p => p.status === 'active' || p.status === 'paused')
+    .forEach(p => sel.add(new Option(p.name, p.id)));
+  if (cur) sel.value = cur;
+}
+
+// ── Add task ──────────────────────────────────────────────────────────────────
+
+async function submitTask(e) {
+  e.preventDefault();
+  const msg = document.getElementById('form-msg');
+  msg.className = '';
+  msg.textContent = 'adding…';
+
+  const payload = {
+    project_id: document.getElementById('f-project').value   || null,
+    title:      document.getElementById('f-title').value.trim(),
+    priority:   document.getElementById('f-priority').value,
+    deadline:   document.getElementById('f-deadline').value  || null,
+  };
+
+  if (!payload.title) { msg.textContent = ''; return; }
+  if (payload.project_id) payload.project_id = Number(payload.project_id);
+
+  try {
+    const r = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'request failed');
+
+    document.getElementById('f-title').value    = '';
+    document.getElementById('f-deadline').value = '';
+    msg.className   = 'ok';
+    msg.textContent = `task #${data.id} added`;
+    setTimeout(() => { msg.textContent = ''; msg.className = ''; }, 3000);
+    toast(`task #${data.id} added`, 'ok');
+    loadAll();
+  } catch (err) {
+    msg.className   = 'err';
+    msg.textContent = err.message;
+    toast('add failed: ' + err.message, 'err');
+  }
+}
+
+// ── Countdown ticker ──────────────────────────────────────────────────────────
+// Re-render the scheduled panel every minute from cached data (no fetch).
+
+setInterval(() => {
+  if (_scheduled) renderScheduled(_scheduled);
+}, 60_000);
+
+// Full data refresh every 5 minutes.
+setInterval(loadAll, 5 * 60_000);
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('hdr-date').textContent =
+    new Date().toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    });
+  loadAll();
+});
+</script>
+
+</body>
+</html>

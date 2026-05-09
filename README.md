@@ -157,15 +157,3 @@ Reply to any email to act on it. The system parses natural language.
 └── personal_os.db    # SQLite database (created on first run, gitignored)
 ```
 
-## Goal hierarchy
-
-The AI is aware of this priority order and evaluates all output against it:
-
-1. **Matrix Media Solutions** — ₹20L/month profit, active CEO in 2 years
-2. **Lumiere Internship** — exit with full-time offer
-3. **Autumn** — AI startup, launch + 1 user/day
-4. **Personal Brand** — 100K Instagram, top 0.5% rooms
-5. **Personal OS** — gym / reading / skincare non-negotiables
-6. **Krea + Actuarial** — dormant, context only
-
-Every generated email flags if high-priority goals have zero movement and never buries north-star tasks under admin.

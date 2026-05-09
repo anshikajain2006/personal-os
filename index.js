@@ -4,7 +4,9 @@ console.log('[startup] beginning...');
 
 try {
 
-require('dotenv').config({ path: '.env.example' });
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 const cron = require('node-cron');
 
 const { nightBrief }                            = require('./nightBrief');

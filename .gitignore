@@ -14,4 +14,3 @@ node_modules/
 Thumbs.db
 .vscode/
 *.swp
-.env.example

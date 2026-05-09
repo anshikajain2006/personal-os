@@ -1,6 +1,5 @@
 'use strict';
 
-require('dotenv').config({ path: '.env.example' });
 const nodemailer = require('nodemailer');
 
 // ── Transport ─────────────────────────────────────────────────────────────────

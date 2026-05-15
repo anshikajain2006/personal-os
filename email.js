@@ -1,18 +1,10 @@
 'use strict';
 
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 // ── Transport ─────────────────────────────────────────────────────────────────
 
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST,
-  port:   Number(process.env.SMTP_PORT) || 587,
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ── Reply-tag helpers ─────────────────────────────────────────────────────────
 
@@ -175,25 +167,25 @@ function buildHtml(htmlBody, replyToTag) {
 // ── sendEmail ─────────────────────────────────────────────────────────────────
 
 async function sendEmail(subject, htmlBody, replyToTag = '') {
-  if (!process.env.SMTP_USER || !process.env.SMTP_HOST) {
-    throw new Error('SMTP config missing — check .env (SMTP_HOST, SMTP_USER, SMTP_PASS)');
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY not set — add it to Railway environment variables');
   }
   if (!process.env.RECIPIENT_EMAIL) {
-    throw new Error('RECIPIENT_EMAIL not set in .env');
+    throw new Error('RECIPIENT_EMAIL not set in environment variables');
   }
 
   const html = buildHtml(htmlBody, replyToTag);
 
-  const info = await transporter.sendMail({
-    from:    `"Personal OS" <${process.env.SMTP_USER}>`,
+  const { data, error } = await resend.emails.send({
+    from:    'Personal OS <onboarding@resend.dev>',
     to:      process.env.RECIPIENT_EMAIL,
     subject,
     html,
-    // Plain-text fallback keeps the tag parseable even in plain-text replies
     text: `${subject}\n\n[reply-tag:${replyToTag}]\n\n(View in an HTML-capable client for full formatting.)`,
   });
 
-  return info;
+  if (error) throw new Error(`Resend error: ${error.message}`);
+  return data;
 }
 
 module.exports = { sendEmail, parseReplyTag };

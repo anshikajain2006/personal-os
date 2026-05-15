@@ -16,6 +16,6 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "node-cron": "^4.2.1",
-    "nodemailer": "^8.0.7"
+    "resend": "^4.8.0"
   }
 }

@@ -349,7 +349,7 @@ async function nightBrief() {
   if (shippedBuild) {
     htmlBody += `<hr style="border-color:#2a2a2a;margin:20px 0">`;
     htmlBody += `<p style="color:#7ee787"><strong>You shipped week ${shippedBuild.week_number}: ${shippedBuild.title}.</strong> Does it have legs?</p>`;
-    htmlBody += `<p style="color:#5a5a5a;font-size:12px;">Reply "yes — [project]" to elevate or "no" to archive.</p>`;
+    htmlBody += `<p style="color:#999999;font-size:12px;">Reply "yes — [project]" to elevate or "no" to archive.</p>`;
   }
 
   // Networking miss nudge
@@ -369,7 +369,7 @@ async function nightBrief() {
   // Ideas capture footer (last line)
   htmlBody += `
     <hr style="border-color:#2a2a2a;margin:24px 0">
-    <p style="color:#7ee787"><strong>&#128161; Any new ideas to capture?</strong> <span style="color:#5a5a5a;font-size:12px;">(for any project — reply and I'll log it)</span></p>`;
+    <p style="color:#7ee787"><strong>&#128161; Any new ideas to capture?</strong> <span style="color:#999999;font-size:12px;">(for any project — reply and I'll log it)</span></p>`;
 
   const displayDate = new Date().toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',

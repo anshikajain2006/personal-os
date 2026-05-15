@@ -92,7 +92,7 @@ function buildHtml(htmlBody, replyToTag) {
     .dot-green { background: #28c840; }
     .prompt {
       margin-left: 10px;
-      color: #5a5a5a;
+      color: #999999;
       font-size: 12px;
       letter-spacing: 0.04em;
     }
@@ -132,7 +132,7 @@ function buildHtml(htmlBody, replyToTag) {
       background: #1e1e1e;
       border: 1px solid #2a2a2a;
       border-radius: 4px;
-      color: #5a5a5a;
+      color: #999999;
       font-size: 11px;
       padding: 2px 8px;
       letter-spacing: 0.06em;
@@ -140,7 +140,7 @@ function buildHtml(htmlBody, replyToTag) {
     .footer {
       padding: 16px 32px 20px;
       border-top: 1px solid #1e1e1e;
-      color: #3a3a3a;
+      color: #999999;
       font-size: 11px;
       display: flex;
       justify-content: space-between;

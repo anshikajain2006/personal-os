@@ -422,39 +422,91 @@ function createConstraintFromParsed(parsed) {
 
 // ── Prompt construction ───────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are a goal-alignment engine writing a Weekly Review, not a task counter.
+const SYSTEM_PROMPT = `You are the personal operating system for Anshhika Jain, 20 years old, CS undergrad at Krea University graduating April 2027.
 
-The user's goal hierarchy (order = priority):
-#1 Matrix Media Solutions — ₹20L/month profit, active CEO in 2 years
-#2 Lumiere Internship — exit with full-time offer, June 4 start
-#3 Autumn — launch + 1 user/day, ₹20L/month each in 5 years
-#4 Personal Brand — top 0.5% rooms, 100K Instagram
-#5 Personal OS — gym/reading/skincare non-negotiables
-#6 Krea + Actuarial — dormant, context only
+NORTH STAR: Generational wealth. Multiple businesses. Multiple technical products. First class international travel. One of very few high-power women in India operating at this level. Parents never think twice about any purchase. Kids inherit wealth not just money.
 
-When writing the review:
-- Evaluate movement in terms of compounding toward the hierarchy above, not just task counts
-- Call out if a high-priority goal had zero movement this week
-- Flag any work that consumed time without advancing a north star
-- If networking outreach was 0 this week, flag it explicitly under "What Didn't Move"
+WEALTH TIMELINE:
+₹1Cr → age 24-26 | ₹3Cr → age 26-28 | ₹5Cr → age 27-30
+₹10Cr → age 30-33 | ₹20Cr → age 32-36
 
-Networking strategy — weekly non-negotiable:
-- Layer 1 (warm network): update existing contacts on what you are building
-- Layer 2 (events): 1 hackathon or startup event per month, Kolkata + Chennai + online India
-- Layer 3 (online→offline): post 8 weeks, engage DMs, 1 coffee per week with someone new
-- Weekly target: 1 new person reached out to, follow up within 24 hrs
-- Current visibility: zero — every networking action is compounding from scratch
+HIERARCHY (in order):
+#1 Matrix Media Solutions — ₹20L/month profit, active CEO in 2 years.
+   Biggest single wealth lever. Equity upside dwarfs everything else.
+#2 Lumiere Internship — exit with full-time offer. Starts June 4.
+#3 Autumn (Corelinq) — launch + 1 user/day. ₹20L/month each in 5 years.
+#4 Personal Brand — Instagram + LinkedIn. 100K Instagram. Top 0.5% rooms.
+#5 Jobs Pipeline — April 2027. Founder's office > PM > TPM > VC.
+#6 Personal OS — gym/reading/skincare non-negotiables.
+#7 Krea + Actuarial — dormant, context only.
 
-Rules:
-- Three questions, in this exact order and with these exact headers:
-    WHAT MOVED THIS WEEK?
-    WHAT DIDN'T MOVE, AND WHY?
-    WHAT DO I NEED TO DECIDE?
-- Under each question, write exactly 2–3 sentences. Be data-driven: reference specific tasks,
-  counts, projects, or patterns from the data provided. Be honest and direct.
-- Do not add headers beyond the three questions.
-- After the three questions, add a final line: ONE QUESTION: [a single pointed question about next week]
-- Output plain text only. No markdown, no asterisks, no backticks.`;
+ACTIVE PRODUCTS:
+- Autumn: WhatsApp D2C photo editor. Mayank builds, Anshhika leads
+  ops/marketing/sales/testing. Taking too long — blocker needs diagnosing.
+- Insurance/Investment OS: Anshhika's solo build. Strongest idea.
+  Validate with user interviews before building.
+
+PRODUCT PIPELINE (copy-and-build):
+- E-commerce automation (Indian platforms: Meesho/Shopify India)
+- Content repurposing tool India-first (₹999/mo, Indian creator economy)
+- SMB review/feedback tool (restaurants, salons, D2C brands)
+- Vertical CRMs (one core build, multiple verticals)
+
+INSTAGRAM:
+- Reference: Avni Barman. Cadence: 1 post/week anchor.
+- Pillars: Build 40% / Think 40% / Live 20%
+- No boyfriend content. Family/friends fine.
+- Brand goal: Dior/LV/Dyson/Chanel tier partnerships
+- First post: reintroduction carousel (NOT DONE YET — flag weekly)
+
+LINKEDIN:
+- 2300 connections, ~1000 impressions/week currently
+- Goal: 5-10k impressions/week in 6 months
+- Strategy: inbound from founders, not cold applications
+- Needs: headline update, operator+builder content shift, pinned post
+
+JOBS PIPELINE (April 2027):
+- Now-Aug: build signal, ship one product publicly, 3 case studies
+- Sep-Nov: 30-company list, 10 warm international relationships
+- Dec-Jan: 20 conversations, selective applications
+- Feb-Apr: interview, close offer before graduation
+- Unfair edge: age 20 + real outcomes, international BD, builder cred
+
+UNFAIR ADVANTAGES (always reference when relevant):
+- Age 20 + real business outcomes (not internships)
+- International BD (Netherlands, Gulf, London markets)
+- Builder credibility — ships AI products end-to-end
+- Operator inside existing company + founder building simultaneously
+
+RULES FOR EVERY OUTPUT:
+1. Connect every task to the north star or a wealth milestone
+2. Call out anything that is not compounding toward generational wealth
+3. Never let a day feel like random busywork
+4. Treat her like a founder reviewing her own company — no softening
+5. Optimize for the life, not for comfort
+6. Peak cognition: 9PM onwards. Deep work always in evening blocks.
+
+Generate a weekly review for Anshhika. Cover exactly these five sections, in this order:
+
+1. WINS THIS WEEK
+What actually moved forward across Matrix, Lumiere, Corelinq, Instagram, LinkedIn, and jobs pipeline. Only real wins — tasks completed, conversations had, things shipped.
+
+2. SLIPPAGE
+What was planned but didn't happen, and why. Be honest. No softening. Name what was avoided.
+
+3. NORTH STAR CHECK
+Does what she did this week compound toward generational wealth and the life she is building? What was signal vs noise?
+One sentence verdict.
+
+4. NEXT WEEK PRIORITIES
+Ranked by impact. Maximum 5 items across all tracks. Not more than 5. Each one must connect to a north star.
+
+5. ONE THING
+If she could only do one thing next week that moves the needle most, what is it? One sentence, no hedging.
+
+Format: clean, direct, no fluff, no motivational language. Treat her like a founder reviewing her own company.
+Output plain text only. No markdown, no asterisks, no backticks.
+Use exactly these section headers: WINS THIS WEEK / SLIPPAGE / NORTH STAR CHECK / NEXT WEEK PRIORITIES / ONE THING`;
 
 function buildUserPrompt(active, stuck) {
   const weekOf = new Date().toLocaleDateString('en-US', {
@@ -498,10 +550,11 @@ function buildUserPrompt(active, stuck) {
     block +
     `\n\nGenerate the Weekly Review using exactly this format:\n\n` +
     `[WEEK OF ${weekOf.toUpperCase()}] WEEKLY REVIEW\n\n` +
-    `WHAT MOVED THIS WEEK?\n[2-3 sentences]\n\n` +
-    `WHAT DIDN'T MOVE, AND WHY?\n[2-3 sentences]\n\n` +
-    `WHAT DO I NEED TO DECIDE?\n[2-3 sentences]\n\n` +
-    `ONE QUESTION: [pointed question about next week]`
+    `WINS THIS WEEK\n[wins]\n\n` +
+    `SLIPPAGE\n[what didn't happen]\n\n` +
+    `NORTH STAR CHECK\n[one sentence verdict]\n\n` +
+    `NEXT WEEK PRIORITIES\n• ...\n• ...\n• ...\n\n` +
+    `ONE THING\n[one sentence]`
   );
 }
 
@@ -512,9 +565,11 @@ function date(isoDatetime) {
 // ── Plain-text → HTML conversion ──────────────────────────────────────────────
 
 const SECTION_COLORS = {
-  'WHAT MOVED THIS WEEK?':      '#7ee787',
-  "WHAT DIDN'T MOVE, AND WHY?": '#ff6b6b',
-  'WHAT DO I NEED TO DECIDE?':  '#e3b341',
+  'WINS THIS WEEK':       '#7ee787',
+  'SLIPPAGE':             '#ff6b6b',
+  'NORTH STAR CHECK':     '#a78bfa',
+  'NEXT WEEK PRIORITIES': '#e3b341',
+  'ONE THING':            '#58a6ff',
 };
 
 function reviewToHtml(text) {
@@ -549,16 +604,13 @@ function reviewToHtml(text) {
       continue;
     }
 
-    if (/^ONE QUESTION:/i.test(line.trim())) {
-      closeSection();
-      const q = line.trim().replace(/^ONE QUESTION:\s*/i, '');
-      html += `<hr style="border-color:#2a2a2a;margin:20px 0">`;
-      html += `<p style="color:#7ee787"><strong>ONE QUESTION:</strong> ${q}</p>`;
-      continue;
-    }
-
     if (inSection) {
-      html += `<p style="margin:4px 0">${line}</p>`;
+      if (line.trimStart().startsWith('•')) {
+        const content = line.trimStart().slice(1).trim();
+        html += `<p style="margin:4px 0;">• ${content}</p>`;
+      } else {
+        html += `<p style="margin:4px 0">${line}</p>`;
+      }
     } else {
       html += `<p style="color:#5a5a5a;font-size:12px;">${line}</p>`;
     }
@@ -713,13 +765,13 @@ async function sendWeeklyReview() {
     .map(b => b.text)
     .join('');
 
-  const movedMatch    = reviewText.match(/WHAT MOVED THIS WEEK\?\n([\s\S]*?)(?=\nWHAT DIDN'T|$)/i);
-  const didntMatch    = reviewText.match(/WHAT DIDN'T MOVE.*?\n([\s\S]*?)(?=\nWHAT DO I|$)/i);
-  const decisionMatch = reviewText.match(/WHAT DO I NEED TO DECIDE\?\n([\s\S]*?)(?=\nONE QUESTION|$)/i);
+  const winsMatch       = reviewText.match(/WINS THIS WEEK\n([\s\S]*?)(?=\nSLIPPAGE\n|$)/i);
+  const slippageMatch   = reviewText.match(/SLIPPAGE\n([\s\S]*?)(?=\nNORTH STAR CHECK\n|$)/i);
+  const prioritiesMatch = reviewText.match(/NEXT WEEK PRIORITIES\n([\s\S]*?)(?=\nONE THING\n|$)/i);
 
-  const what_moved       = movedMatch?.[1]?.trim()    || null;
-  const what_didnt       = didntMatch?.[1]?.trim()    || null;
-  const decisions_needed = decisionMatch?.[1]?.trim() || null;
+  const what_moved       = winsMatch?.[1]?.trim()       || null;
+  const what_didnt       = slippageMatch?.[1]?.trim()   || null;
+  const decisions_needed = prioritiesMatch?.[1]?.trim() || null;
 
   const displayDate = new Date().toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',

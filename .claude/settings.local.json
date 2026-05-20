@@ -32,7 +32,13 @@
       "Bash(git remote *)",
       "Bash(git branch *)",
       "Bash(git push *)",
-      "Bash(node index.js --run-now night-brief)"
+      "Bash(node index.js --run-now night-brief)",
+      "Bash(git commit *)",
+      "Bash(git rm *)",
+      "Bash(git check-ignore *)",
+      "Bash(Get-ChildItem C:\\\\Users\\\\HP\\\\OneDrive\\\\Desktop\\\\Personal -Exclude node_modules)",
+      "Bash(Select-Object Name, LastWriteTime)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\HP\\\\OneDrive\\\\Desktop\\\\Personal\" | Where-Object { $_.Name -ne \"node_modules\" } | Select-Object Name, LastWriteTime)"
     ]
   }
 }

@@ -435,5 +435,47 @@ function getCurrentBuildWeek(now = new Date()) {
   return Math.max(1, Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000)) + 1);
 }
 
+// ── Immediate action task seeds ───────────────────────────────────────────────
+// Inserts priority tasks on every startup if not already open. Safe to re-run.
+
+function seedActionTasks() {
+  const deadlinePlus14 = new Date();
+  deadlinePlus14.setDate(deadlinePlus14.getDate() + 14);
+  const deadline14 = deadlinePlus14.toISOString().slice(0, 10);
+
+  const brandId  = db.prepare(`SELECT id FROM projects WHERE name LIKE '%Personal Brand%' LIMIT 1`).get()?.id || null;
+  const autumnId = db.prepare(`SELECT id FROM projects WHERE name LIKE '%Autumn%' LIMIT 1`).get()?.id        || null;
+
+  const alreadyOpen = db.prepare(
+    `SELECT 1 FROM tasks WHERE title = ? AND status NOT IN ('done','cancelled','archived') LIMIT 1`
+  );
+  const insert = db.prepare(`
+    INSERT INTO tasks (project_id, title, priority, deadline, recurrence, status)
+    VALUES (?, ?, ?, ?, ?, 'todo')
+  `);
+
+  const tasks = [
+    [brandId,  'Update LinkedIn headline: BD + restructuring at Matrix · building AI products at Corelinq · CS @ Krea', 'critical', null,       null    ],
+    [brandId,  'Write Instagram reintroduction carousel — 4 slides, sets entire account tone',                          'critical', null,       null    ],
+    [autumnId, 'Diagnose Autumn blocker with Mayank',                                                                   'critical', null,       null    ],
+    [autumnId, 'Identify 5 people to interview for Insurance OS validation',                                            'high',     deadline14, null    ],
+    [brandId,  'Curate 30-50 photos from gallery for Instagram content',                                                'high',     deadline14, null    ],
+    [brandId,  'Write and pin one LinkedIn post showing a real business outcome',                                       'high',     deadline14, null    ],
+    [autumnId, 'Weekly Mayank sync on Autumn progress',                                                                 'high',     null,       'weekly'],
+  ];
+
+  let inserted = 0;
+  for (const [projectId, title, priority, deadline, recurrence] of tasks) {
+    if (!alreadyOpen.get(title)) {
+      insert.run(projectId, title, priority, deadline, recurrence);
+      inserted++;
+    }
+  }
+
+  if (inserted > 0) console.log(`[db] Action tasks seeded: ${inserted} new task(s) inserted.`);
+}
+
+seedActionTasks();
+
 module.exports = db;
 module.exports.getCurrentBuildWeek = getCurrentBuildWeek;

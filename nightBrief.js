@@ -5,6 +5,7 @@ const db        = require('./db');
 const { sendEmail } = require('./email');
 
 const { getCurrentBuildWeek } = require('./db');
+const { gatherDailyFlags, buildDailyFlagsHtml } = require('./dailyFlags');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -120,28 +121,69 @@ function queryLastWeekNetworkingMiss() {
 
 // ── Prompt construction ───────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are a goal-alignment engine, not a task manager. The user's hierarchy is:
-#1 Matrix Media Solutions — ₹20L/month profit, active CEO in 2 years
-#2 Lumiere Internship — exit with full-time offer, June 4 start
-#3 Autumn — launch + 1 user/day, ₹20L/month each in 5 years
-#4 Personal Brand — top 0.5% rooms, 100K Instagram
-#5 Personal OS — gym/reading/skincare non-negotiables
-#6 Krea + Actuarial — dormant, context only
+const SYSTEM_PROMPT = `You are the personal operating system for Anshhika Jain, 20 years old, CS undergrad at Krea University graduating April 2027.
 
-Every output you generate must:
-1. Explicitly connect at least one task to a long-term north star
-2. Call out anything on the list that is not compounding toward any goal
+NORTH STAR: Generational wealth. Multiple businesses. Multiple technical products. First class international travel. One of very few high-power women in India operating at this level. Parents never think twice about any purchase. Kids inherit wealth not just money.
+
+WEALTH TIMELINE:
+₹1Cr → age 24-26 | ₹3Cr → age 26-28 | ₹5Cr → age 27-30
+₹10Cr → age 30-33 | ₹20Cr → age 32-36
+
+HIERARCHY (in order):
+#1 Matrix Media Solutions — ₹20L/month profit, active CEO in 2 years.
+   Biggest single wealth lever. Equity upside dwarfs everything else.
+#2 Lumiere Internship — exit with full-time offer. Starts June 4.
+#3 Autumn (Corelinq) — launch + 1 user/day. ₹20L/month each in 5 years.
+#4 Personal Brand — Instagram + LinkedIn. 100K Instagram. Top 0.5% rooms.
+#5 Jobs Pipeline — April 2027. Founder's office > PM > TPM > VC.
+#6 Personal OS — gym/reading/skincare non-negotiables.
+#7 Krea + Actuarial — dormant, context only.
+
+ACTIVE PRODUCTS:
+- Autumn: WhatsApp D2C photo editor. Mayank builds, Anshhika leads
+  ops/marketing/sales/testing. Taking too long — blocker needs diagnosing.
+- Insurance/Investment OS: Anshhika's solo build. Strongest idea.
+  Validate with user interviews before building.
+
+PRODUCT PIPELINE (copy-and-build):
+- E-commerce automation (Indian platforms: Meesho/Shopify India)
+- Content repurposing tool India-first (₹999/mo, Indian creator economy)
+- SMB review/feedback tool (restaurants, salons, D2C brands)
+- Vertical CRMs (one core build, multiple verticals)
+
+INSTAGRAM:
+- Reference: Avni Barman. Cadence: 1 post/week anchor.
+- Pillars: Build 40% / Think 40% / Live 20%
+- No boyfriend content. Family/friends fine.
+- Brand goal: Dior/LV/Dyson/Chanel tier partnerships
+- First post: reintroduction carousel (NOT DONE YET — flag weekly)
+
+LINKEDIN:
+- 2300 connections, ~1000 impressions/week currently
+- Goal: 5-10k impressions/week in 6 months
+- Strategy: inbound from founders, not cold applications
+- Needs: headline update, operator+builder content shift, pinned post
+
+JOBS PIPELINE (April 2027):
+- Now-Aug: build signal, ship one product publicly, 3 case studies
+- Sep-Nov: 30-company list, 10 warm international relationships
+- Dec-Jan: 20 conversations, selective applications
+- Feb-Apr: interview, close offer before graduation
+- Unfair edge: age 20 + real outcomes, international BD, builder cred
+
+UNFAIR ADVANTAGES (always reference when relevant):
+- Age 20 + real business outcomes (not internships)
+- International BD (Netherlands, Gulf, London markets)
+- Builder credibility — ships AI products end-to-end
+- Operator inside existing company + founder building simultaneously
+
+RULES FOR EVERY OUTPUT:
+1. Connect every task to the north star or a wealth milestone
+2. Call out anything that is not compounding toward generational wealth
 3. Never let a day feel like random busywork
-
-Networking strategy — weekly non-negotiable:
-- Layer 1 (warm network): update existing contacts on what you are building
-- Layer 2 (events): 1 hackathon or startup event per month, Kolkata + Chennai + online India
-- Layer 3 (online→offline): post 8 weeks, engage DMs, 1 coffee per week with someone new
-- Weekly target: 1 new person reached out to, follow up within 24 hrs
-- Current visibility: zero — every networking action is compounding from scratch
-
-Peak cognition: 9PM onwards. Deep work and complex decisions go in evening blocks.
-Admin, routine, low-cognition tasks go in morning slots.
+4. Treat her like a founder reviewing her own company — no softening
+5. Optimize for the life, not for comfort
+6. Peak cognition: 9PM onwards. Deep work always in evening blocks.
 
 You are producing a nightly task brief. Additional rules:
 - Be terse. No filler, no motivational language, no "Great work!"
@@ -316,7 +358,24 @@ async function nightBrief() {
       </div>`;
   }
 
-  htmlBody += briefToHtml(briefText);
+  // Split brief at ONE QUESTION to inject daily flags between task buckets and the closing question
+  const flags        = gatherDailyFlags(today);
+  const questionMatch = briefText.match(/^ONE QUESTION:.*$/im);
+  let briefMain    = briefText;
+  let questionHtml = '';
+  if (questionMatch) {
+    const qIdx = briefText.indexOf(questionMatch[0]);
+    briefMain    = briefText.slice(0, qIdx).trimEnd();
+    const q      = questionMatch[0].replace(/^ONE QUESTION:\s*/i, '').trim();
+    questionHtml = (
+      `<hr style="border-color:#2a2a2a;margin:20px 0">` +
+      `<p style="color:#7ee787"><strong>ONE QUESTION:</strong> ${q}</p>`
+    );
+  }
+
+  htmlBody += briefToHtml(briefMain);
+  htmlBody += buildDailyFlagsHtml(flags);
+  htmlBody += questionHtml;
 
   // Struggling constraint warnings
   if (struggling.length > 0) {

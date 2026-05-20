@@ -56,6 +56,28 @@ function queryAllProjects() {
   ).all();
 }
 
+function queryMonthNetworkContacts() {
+  return db.prepare(`
+    SELECT name, context, met_via, relationship_strength
+    FROM network_contacts
+    WHERE date(created_at) >= date('now', '-30 days')
+    ORDER BY relationship_strength DESC
+  `).all();
+}
+
+function queryStaleIdeas() {
+  return db.prepare(`
+    SELECT i.idea_text, i.captured_at,
+           COALESCE(p.name, 'Unassigned') AS project_name
+    FROM ideas i
+    LEFT JOIN projects p ON i.project_id = p.id
+    WHERE i.status = 'raw'
+      AND date(i.captured_at) <= date('now', '-30 days')
+    ORDER BY i.captured_at ASC
+    LIMIT 5
+  `).all();
+}
+
 // Returns constraints that have been running for 28+ days and are still active.
 function queryAuditableConstraints() {
   return db.prepare(`
@@ -90,46 +112,101 @@ function projectStats(tasks) {
 
 // ── Task audit prompt ─────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are a goal-alignment engine producing a Monthly Audit, not a completion-rate calculator.
+const SYSTEM_PROMPT = `You are the personal operating system for Anshhika Jain, 20 years old, CS undergrad at Krea University graduating April 2027.
 
-The user's goal hierarchy (order = priority):
-#1 Matrix Media Solutions — ₹20L/month profit, active CEO in 2 years
-#2 Lumiere Internship — exit with full-time offer, June 4 start
-#3 Autumn — launch + 1 user/day, ₹20L/month each in 5 years
-#4 Personal Brand — top 0.5% rooms, 100K Instagram
-#5 Personal OS — gym/reading/skincare non-negotiables
-#6 Krea + Actuarial — dormant, context only
+NORTH STAR: Generational wealth. Multiple businesses. Multiple technical products. First class international travel. One of very few high-power women in India operating at this level. Parents never think twice about any purchase. Kids inherit wealth not just money.
 
-Scoring and drift analysis must reflect this hierarchy: a project scoring 8/10 on pure task completion is still a drift flag if it ranked #1 in the hierarchy but only moved on low-leverage work. A project ranked #6 with no activity is expected — do not penalise it.
+WEALTH TIMELINE:
+₹1Cr → age 24-26 | ₹3Cr → age 26-28 | ₹5Cr → age 27-30
+₹10Cr → age 30-33 | ₹20Cr → age 32-36
 
-Networking strategy — monthly check:
-- Layer 1 (warm network): update existing contacts on what you are building
-- Layer 2 (events): 1 hackathon or startup event per month, Kolkata + Chennai + online India
-- Layer 3 (online→offline): post 8 weeks, engage DMs, 1 coffee per week with someone new
-- Monthly minimum: 4 outreach weeks hit, 1 event attended
-- Current visibility: zero — every networking action is compounding from scratch
+HIERARCHY (in order):
+#1 Matrix Media Solutions — ₹20L/month profit, active CEO in 2 years.
+   Biggest single wealth lever. Equity upside dwarfs everything else.
+#2 Lumiere Internship — exit with full-time offer. Starts June 4.
+#3 Autumn (Corelinq) — launch + 1 user/day. ₹20L/month each in 5 years.
+#4 Personal Brand — Instagram + LinkedIn. 100K Instagram. Top 0.5% rooms.
+#5 Jobs Pipeline — April 2027. Founder's office > PM > TPM > VC.
+#6 Personal OS — gym/reading/skincare non-negotiables.
+#7 Krea + Actuarial — dormant, context only.
 
-Your response must have exactly two parts in this order:
+ACTIVE PRODUCTS:
+- Autumn: WhatsApp D2C photo editor. Mayank builds, Anshhika leads
+  ops/marketing/sales/testing. Taking too long — blocker needs diagnosing.
+- Insurance/Investment OS: Anshhika's solo build. Strongest idea.
+  Validate with user interviews before building.
 
-PART 1 — a single line:
-SCORES_JSON: {"Project Name": score, "Project Name": score, ...}
-Scores are integers 1–10. Scoring rubric: completion rate (40%), in-progress momentum (30%), no blocked/overdue tasks (30%). A project with no activity scores 2.
+PRODUCT PIPELINE (copy-and-build):
+- E-commerce automation (Indian platforms: Meesho/Shopify India)
+- Content repurposing tool India-first (₹999/mo, Indian creator economy)
+- SMB review/feedback tool (restaurants, salons, D2C brands)
+- Vertical CRMs (one core build, multiple verticals)
 
-PART 2 — the email, using these exact headers in order:
-[MONTH YEAR] MONTHLY AUDIT
-PROJECT SCORES
-DRIFT FLAGS
-RESET FOR NEXT MONTH
-MOMENTUM SUMMARY
+INSTAGRAM:
+- Reference: Avni Barman. Cadence: 1 post/week anchor.
+- Pillars: Build 40% / Think 40% / Live 20%
+- No boyfriend content. Family/friends fine.
+- Brand goal: Dior/LV/Dyson/Chanel tier partnerships
+- First post: reintroduction carousel (NOT DONE YET — flag weekly)
 
-Format rules:
-- PROJECT SCORES: one line per project — "Name: N/10 — [one-sentence reason]"
-- DRIFT FLAGS: bullet list of projects below 30% completion rate. Write "(none)" if clean.
-- RESET FOR NEXT MONTH: 3–5 specific tasks to tackle first next month, with project name in parentheses
-- MOMENTUM SUMMARY: 3 sentences max, data-driven, no filler
-- Plain text only. No markdown, no asterisks, no backticks.`;
+LINKEDIN:
+- 2300 connections, ~1000 impressions/week currently
+- Goal: 5-10k impressions/week in 6 months
+- Strategy: inbound from founders, not cold applications
+- Needs: headline update, operator+builder content shift, pinned post
 
-function buildUserPrompt(grouped, projects) {
+JOBS PIPELINE (April 2027):
+- Now-Aug: build signal, ship one product publicly, 3 case studies
+- Sep-Nov: 30-company list, 10 warm international relationships
+- Dec-Jan: 20 conversations, selective applications
+- Feb-Apr: interview, close offer before graduation
+- Unfair edge: age 20 + real outcomes, international BD, builder cred
+
+UNFAIR ADVANTAGES (always reference when relevant):
+- Age 20 + real business outcomes (not internships)
+- International BD (Netherlands, Gulf, London markets)
+- Builder credibility — ships AI products end-to-end
+- Operator inside existing company + founder building simultaneously
+
+RULES FOR EVERY OUTPUT:
+1. Connect every task to the north star or a wealth milestone
+2. Call out anything that is not compounding toward generational wealth
+3. Never let a day feel like random busywork
+4. Treat her like a founder reviewing her own company — no softening
+5. Optimize for the life, not for comfort
+6. Peak cognition: 9PM onwards. Deep work always in evening blocks.
+
+Open every monthly audit with this exact block:
+
+THE LIFE SHE IS BUILDING:
+Multiple businesses owned simultaneously. Multiple technical products generating revenue. First class international travel multiple times a year. Respected and sought-after in every room. One of very few high-power women in India at this level. Parents never think twice about any purchase at any scale. Children who inherit wealth, not just money.
+
+Then answer these five questions using actual task/project data:
+
+1. PROUD OF
+What happened this month that the 35-year-old version of her would be proud of?
+
+2. SMALL THINKING
+What happened this month that was small thinking — playing it safe when she should have moved bigger?
+
+3. TRACK STATUS
+Which active tracks made real progress and which is stagnating?
+Rate each — Matrix / Lumiere / Corelinq / Instagram / Jobs Pipeline — one word:
+Compounding / Moving / Stagnating / Drifting
+
+4. RELATIONSHIPS
+Is she building relationships with the right people — people 5-10 years ahead of where she wants to be?
+Use the network contacts data provided.
+
+5. AVOIDED DECISION
+What is the one decision she is avoiding that she needs to make?
+Look at tasks that keep getting pushed or ideas marked raw for more than 30 days.
+
+Do not let her optimize for comfort. Optimize for the life.
+Output plain text only. No markdown, no asterisks, no backticks.
+Use exactly these section headers: THE LIFE SHE IS BUILDING / PROUD OF / SMALL THINKING / TRACK STATUS / RELATIONSHIPS / AVOIDED DECISION`;
+
+function buildUserPrompt(grouped, projects, networkContacts, staleIdeas) {
   const allTasks  = Object.values(grouped).flat();
   const totalDone = allTasks.filter(t => ['done', 'archived'].includes(t.status)).length;
   const totalOpen = allTasks.filter(t => !['done', 'cancelled', 'archived'].includes(t.status)).length;
@@ -156,7 +233,26 @@ function buildUserPrompt(grouped, projects) {
     }
   }
 
-  return block + `\nGenerate the Monthly Audit (SCORES_JSON line first, then the email text).`;
+  block += `\nNETWORK CONTACTS ADDED THIS MONTH (${networkContacts.length}):\n`;
+  if (networkContacts.length > 0) {
+    for (const c of networkContacts) {
+      block += `  • ${c.name}${c.context ? ' — ' + c.context : ''}${c.met_via ? ' [' + c.met_via + ']' : ''} (strength ${c.relationship_strength}/5)\n`;
+    }
+  } else {
+    block += `  (none)\n`;
+  }
+
+  block += `\nIDEAS RAW FOR 30+ DAYS (${staleIdeas.length}):\n`;
+  if (staleIdeas.length > 0) {
+    for (const i of staleIdeas) {
+      const preview = i.idea_text.slice(0, 80) + (i.idea_text.length > 80 ? '…' : '');
+      block += `  • "${preview}" (${i.project_name}, since ${i.captured_at.slice(0, 10)})\n`;
+    }
+  } else {
+    block += `  (none)\n`;
+  }
+
+  return block + `\nGenerate the Monthly Audit.`;
 }
 
 // ── Task audit response parsing ───────────────────────────────────────────────
@@ -263,10 +359,12 @@ Only include constraints with a clear decision. If none found, return [].`,
 // ── HTML conversion ───────────────────────────────────────────────────────────
 
 const SECTION_COLORS = {
-  'PROJECT SCORES':       '#7ee787',
-  'DRIFT FLAGS':          '#ff6b6b',
-  'RESET FOR NEXT MONTH': '#e3b341',
-  'MOMENTUM SUMMARY':     '#58a6ff',
+  'THE LIFE SHE IS BUILDING': '#a78bfa',
+  'PROUD OF':                  '#7ee787',
+  'SMALL THINKING':            '#e3b341',
+  'TRACK STATUS':              '#58a6ff',
+  'RELATIONSHIPS':             '#c0c0c0',
+  'AVOIDED DECISION':          '#ff6b6b',
 };
 
 function auditToHtml(text) {
@@ -295,17 +393,16 @@ function auditToHtml(text) {
       continue;
     }
 
-    const scoreMatch = line.match(/^(.+?):\s*(\d+)\/10\s*[—–-]\s*(.+)$/);
-    if (scoreMatch && inSection) {
-      const [, name, score, reason] = scoreMatch;
-      const n     = parseInt(score, 10);
-      const color = n >= 7 ? '#7ee787' : n >= 4 ? '#e3b341' : '#ff6b6b';
-      html += (
-        `<p style="margin:5px 0;">` +
-        `<strong style="color:#d4d4d4">${name}</strong>: ` +
-        `<span style="color:${color};font-size:15px;">${score}/10</span> ` +
-        `<span style="color:#5a5a5a">— ${reason}</span></p>`
-      );
+    const trackMatch = line.match(/^(Matrix|Lumiere|Corelinq|Instagram|Jobs Pipeline):\s*(Compounding|Moving|Stagnating|Drifting)$/i);
+    if (trackMatch && inSection) {
+      const [, track, status] = trackMatch;
+      const color = {
+        compounding: '#7ee787',
+        moving:      '#58a6ff',
+        stagnating:  '#e3b341',
+        drifting:    '#ff6b6b',
+      }[status.toLowerCase()] || '#c0c0c0';
+      html += `<p style="margin:5px 0;"><strong style="color:#d4d4d4">${track}:</strong> <span style="color:${color}">${status}</span></p>`;
       continue;
     }
 
@@ -473,10 +570,12 @@ async function sendMonthlyAudit() {
     return null;
   }
 
-  const tasks       = queryMonthTasks();
-  const projects    = queryAllProjects();
-  const grouped     = groupByProject(tasks);
-  const constraints = queryAuditableConstraints();
+  const tasks           = queryMonthTasks();
+  const projects        = queryAllProjects();
+  const grouped         = groupByProject(tasks);
+  const constraints     = queryAuditableConstraints();
+  const networkContacts = queryMonthNetworkContacts();
+  const staleIdeas      = queryStaleIdeas();
 
   const aiResponse = await client.messages.create({
     model: 'claude-sonnet-4-6',
@@ -485,7 +584,7 @@ async function sendMonthlyAudit() {
       { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
     ],
     messages: [
-      { role: 'user', content: buildUserPrompt(grouped, projects) },
+      { role: 'user', content: buildUserPrompt(grouped, projects, networkContacts, staleIdeas) },
     ],
   });
 

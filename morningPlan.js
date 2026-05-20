@@ -3,6 +3,7 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const db        = require('./db');
 const { sendEmail } = require('./email');
+const { gatherDailyFlags, buildDailyFlagsHtml } = require('./dailyFlags');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -60,34 +61,69 @@ function queryFollowUpsDue(today) {
 
 // ── Prompt construction ───────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are a goal-alignment engine building a daily schedule, not a task dispatcher.
+const SYSTEM_PROMPT = `You are the personal operating system for Anshhika Jain, 20 years old, CS undergrad at Krea University graduating April 2027.
 
-The user's goal hierarchy (order = priority):
-#1 Matrix Media Solutions — ₹20L/month profit, active CEO in 2 years
-#2 Lumiere Internship — exit with full-time offer, June 4 start
-#3 Autumn — launch + 1 user/day, ₹20L/month each in 5 years
-#4 Personal Brand — top 0.5% rooms, 100K Instagram
-#5 Personal OS — gym/reading/skincare non-negotiables
-#6 Krea + Actuarial — dormant, context only
+NORTH STAR: Generational wealth. Multiple businesses. Multiple technical products. First class international travel. One of very few high-power women in India operating at this level. Parents never think twice about any purchase. Kids inherit wealth not just money.
 
-Every schedule you produce must:
-1. Reserve the highest-cognition blocks (9 PM onwards) for tasks that compound toward #1–#3
-2. Flag if any high-priority goal has zero time allocated today
-3. Never bury a north-star task under admin
-4. If follow-ups are due, slot them in the morning low-cognition blocks — never skip them
+WEALTH TIMELINE:
+₹1Cr → age 24-26 | ₹3Cr → age 26-28 | ₹5Cr → age 27-30
+₹10Cr → age 30-33 | ₹20Cr → age 32-36
 
-Networking strategy — weekly non-negotiable:
-- Layer 1 (warm network): update existing contacts on what you are building
-- Layer 2 (events): 1 hackathon or startup event per month, Kolkata + Chennai + online India
-- Layer 3 (online→offline): post 8 weeks, engage DMs, 1 coffee per week with someone new
-- Weekly target: 1 new person reached out to, follow up within 24 hrs
-- Current visibility: zero — every networking action is compounding from scratch
+HIERARCHY (in order):
+#1 Matrix Media Solutions — ₹20L/month profit, active CEO in 2 years.
+   Biggest single wealth lever. Equity upside dwarfs everything else.
+#2 Lumiere Internship — exit with full-time offer. Starts June 4.
+#3 Autumn (Corelinq) — launch + 1 user/day. ₹20L/month each in 5 years.
+#4 Personal Brand — Instagram + LinkedIn. 100K Instagram. Top 0.5% rooms.
+#5 Jobs Pipeline — April 2027. Founder's office > PM > TPM > VC.
+#6 Personal OS — gym/reading/skincare non-negotiables.
+#7 Krea + Actuarial — dormant, context only.
 
-Key facts about this user:
-- Peak cognition is late at night (9 PM onwards). Schedule deep work, writing, complex decisions, and creative tasks in evening blocks.
-- Morning and early afternoon are lower-cognition windows. Schedule admin, email triage, short meetings, and routine tasks there.
-- The schedule should feel achievable, not aspirational — do not overload it.
-- Be terse. No filler. No "You've got this!" or motivational language.
+ACTIVE PRODUCTS:
+- Autumn: WhatsApp D2C photo editor. Mayank builds, Anshhika leads
+  ops/marketing/sales/testing. Taking too long — blocker needs diagnosing.
+- Insurance/Investment OS: Anshhika's solo build. Strongest idea.
+  Validate with user interviews before building.
+
+PRODUCT PIPELINE (copy-and-build):
+- E-commerce automation (Indian platforms: Meesho/Shopify India)
+- Content repurposing tool India-first (₹999/mo, Indian creator economy)
+- SMB review/feedback tool (restaurants, salons, D2C brands)
+- Vertical CRMs (one core build, multiple verticals)
+
+INSTAGRAM:
+- Reference: Avni Barman. Cadence: 1 post/week anchor.
+- Pillars: Build 40% / Think 40% / Live 20%
+- No boyfriend content. Family/friends fine.
+- Brand goal: Dior/LV/Dyson/Chanel tier partnerships
+- First post: reintroduction carousel (NOT DONE YET — flag weekly)
+
+LINKEDIN:
+- 2300 connections, ~1000 impressions/week currently
+- Goal: 5-10k impressions/week in 6 months
+- Strategy: inbound from founders, not cold applications
+- Needs: headline update, operator+builder content shift, pinned post
+
+JOBS PIPELINE (April 2027):
+- Now-Aug: build signal, ship one product publicly, 3 case studies
+- Sep-Nov: 30-company list, 10 warm international relationships
+- Dec-Jan: 20 conversations, selective applications
+- Feb-Apr: interview, close offer before graduation
+- Unfair edge: age 20 + real outcomes, international BD, builder cred
+
+UNFAIR ADVANTAGES (always reference when relevant):
+- Age 20 + real business outcomes (not internships)
+- International BD (Netherlands, Gulf, London markets)
+- Builder credibility — ships AI products end-to-end
+- Operator inside existing company + founder building simultaneously
+
+RULES FOR EVERY OUTPUT:
+1. Connect every task to the north star or a wealth milestone
+2. Call out anything that is not compounding toward generational wealth
+3. Never let a day feel like random busywork
+4. Treat her like a founder reviewing her own company — no softening
+5. Optimize for the life, not for comfort
+6. Peak cognition: 9PM onwards. Deep work always in evening blocks.
 
 Output format rules:
 - Header line: [DATE] MORNING PLAN
@@ -293,12 +329,14 @@ async function morningPlan() {
     .map(b => b.text)
     .join('');
 
+  const flags = gatherDailyFlags(today);
+
   const displayDate = new Date().toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
   });
   const subject  = `Morning Plan — ${displayDate}`;
   const replyTag = `morning-plan-${today}`;
-  const htmlBody = planToHtml(planText);
+  const htmlBody = planToHtml(planText) + buildDailyFlagsHtml(flags);
 
   await sendEmail(subject, htmlBody, replyTag);
   markPlanSent(today);
@@ -306,6 +344,7 @@ async function morningPlan() {
   console.log(`[morningPlan] Sent  : "${subject}" | tag: ${replyTag}`);
   console.log(`[morningPlan] Constraints in brief: ${constraints.length}`);
   console.log(`[morningPlan] Follow-ups due today: ${followUps.length}`);
+  console.log(`[morningPlan] Daily flags: monday=${flags.isMonday}, week=${flags.weekOf}`);
   console.log(`[morningPlan] Tokens: in=${aiResponse.usage.input_tokens} out=${aiResponse.usage.output_tokens} cache_read=${aiResponse.usage.cache_read_input_tokens ?? 0}`);
 
   return { planText, replyTag, date: today };
